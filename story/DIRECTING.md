@@ -93,11 +93,13 @@ By default the camera is a fixed wide shot. Put an `@camera` line before a direc
 @camera medium on Mika        # centred on one character
 @camera close on Alex         # close-up on a face and chest (use `close` alone to follow whoever is speaking)
 @camera two shot              # medium shot of both
-@camera pan to Alex           # smooth move (0.9 s) to a medium shot of Alex
-@camera push in on Mika       # slow 5 s zoom in
+@camera pan to Alex           # smooth move (1.4 s) to a medium shot of Alex
+@camera push in on Mika       # slow 7 s zoom in (to 1.2x)
 @camera pull out              # smooth return to the wide shot
 ```
 
 - Targets follow the characters while they walk.
 - A new `@scene` starts on the wide shot again (if the camera was zoomed in).
 - Zoomed shots are scaled up from the normal frame, so keep close-ups for short moments.
+
+Zoom levels are deliberately gentle: medium = 1.15x, close = 1.4x. Change `CAM_Z` in `story/acting.py` if you want them stronger.

@@ -97,7 +97,7 @@ def _names():
     return {k.lower(): k for k in L.CHARS}
 
 
-CAM_Z = {"wide": 1.0, "medium": 1.35, "close": 1.8}
+CAM_Z = {"wide": 1.0, "medium": 1.15, "close": 1.4}
 
 
 def parse_camera(text):
@@ -124,12 +124,12 @@ def parse_camera(text):
         return dict(z=CAM_Z["medium"], tgt="both", dur=0.0)
     m = re.match(r"^pan(?: to)?(?: (.+))?$", t)
     if m:
-        return dict(z=CAM_Z["medium"], tgt=tgt(m[1], "speaker"), dur=0.9)
+        return dict(z=CAM_Z["medium"], tgt=tgt(m[1], "speaker"), dur=1.4)
     m = re.match(r"^(?:push|zoom)(?: in)?(?: (?:on|to) (.+))?$", t)
     if m:
-        return dict(z=1.4, tgt=tgt(m[1], "speaker"), dur=5.0)
+        return dict(z=1.2, tgt=tgt(m[1], "speaker"), dur=7.0)
     if re.match(r"^(?:pull|zoom)(?: |-)?out$", t) or t in ("reset", "pull back"):
-        return dict(z=1.0, tgt="both", dur=1.5)
+        return dict(z=1.0, tgt="both", dur=2.0)
     raise ValueError(f"camera: don't understand '{text}'. Try: wide | medium on Mika | close on Alex | two shot | pan to Alex | push in on both | pull out")
 
 
