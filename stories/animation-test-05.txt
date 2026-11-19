@@ -1,0 +1,28 @@
+title: Animation Test 5 - New Places
+scene: apartment
+
+[story]
+@scene apartment
+> Mika enters left
+& Alex enters right
+> Mika looks worried
+> Mika phones for 6
+Mika: もしもし？ はい、わたしです。 | Hello? Yes, this is me.
+> Mika looks thrilled
+> Alex looks curious
+Mika: ほんとう？ やります！ | Really? I'll do it!
+@scene stall
+> Ono enters right
+Ono: いらっしゃい！ | Welcome!
+> Alex looks excited
+Alex: たまごやきを ふたつ ください。 | Two egg rolls, please.
+> Ono shows
+> Ono exits right
+@scene sushi
+> Hana enters right
+Hana: いらっしゃいませ！ | Welcome!
+> Mika looks happy
+Mika: ふたりです。 | Two people, please.
+> Alex looks excited
+> Alex points right
+Alex: おすしが たべたい！ | I want to eat sushi!
