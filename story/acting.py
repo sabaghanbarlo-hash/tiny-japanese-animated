@@ -20,18 +20,22 @@ SPEED = 380.0       # px / second when walking
 RUN_SPEED = 720.0
 EXPRS = {"neutral": "neutral", "confused": "confused", "puzzled": "confused", "nervous": "confused",
          "lost": "confused", "surprised": "surprised", "shocked": "surprised", "amazed": "surprised",
-         "happy": "happy", "excited": "happy", "smiling": "happy", "glad": "happy", "laughing": "happy",
-         "sad": "sad", "worried": "sad", "disappointed": "sad", "shy": "shy", "embarrassed": "shy"}
+         "happy": "happy", "excited": "excited", "smiling": "happy", "glad": "happy", "laughing": "happy",
+         "sad": "sad", "disappointed": "sad", "shy": "shy", "embarrassed": "shy",
+         "worried": "worried", "anxious": "worried", "annoyed": "annoyed", "bored": "annoyed", "unimpressed": "annoyed",
+         "angry": "angry", "mad": "angry", "furious": "angry", "smirking": "smirk", "smug": "smirk", "cheeky": "smirk", "playful": "smirk",
+         "joyful": "joy", "delighted": "joy", "thrilled": "excited", "thinking": "thinking", "curious": "thinking", "determined": "determined", "serious": "determined"}
 
 # ------------------------------------------------------------------ items
 EDIBLE = {"cotton_candy", "ice_cream", "popcorn"}
-ITEMS = {"cotton_candy", "ice_cream", "balloon", "ticket", "drink", "bag", "book", "popcorn", "plush", "umbrella"}
+ITEMS = {"cotton_candy", "ice_cream", "balloon", "ticket", "drink", "bag", "book", "popcorn", "plush", "umbrella", "phone", "broom", "box", "cake_box"}
+RIGPROPS = {"phone", "broom", "box", "cake_box"}     # drawn by rigsvg (move with the hands), not by _draw_item
 ITEM_ALIASES = {"cotton candy": "cotton_candy", "candyfloss": "cotton_candy", "candy floss": "cotton_candy",
                 "fairy floss": "cotton_candy", "ice cream": "ice_cream", "icecream": "ice_cream", "ice-cream": "ice_cream",
                 "tickets": "ticket", "juice": "drink", "soda": "drink", "tea": "drink", "coffee": "drink", "cup": "drink",
                 "shopping bag": "bag", "gift": "bag", "present": "bag", "teddy": "plush", "teddy bear": "plush",
                 "prize": "plush", "stuffed animal": "plush", "toy": "plush", "bear": "plush", "plushie": "plush",
-                "balloons": "balloon", "brolly": "umbrella", "umbrellas": "umbrella", "rain umbrella": "umbrella", "parasol": "umbrella"}
+                "smartphone": "phone", "mobile": "phone", "cell phone": "phone", "food box": "box", "bento": "box", "parcel": "box", "cake": "cake_box", "cake box": "cake_box", "balloons": "balloon", "brolly": "umbrella", "umbrellas": "umbrella", "rain umbrella": "umbrella", "parasol": "umbrella"}
 
 
 def item_name(text):
@@ -93,6 +97,9 @@ def _names():
     return {k.lower(): k for k in L.CHARS}
 
 
+GESTURES = {"point": "point", "shrug": "shrug", "think": "think", "bow": "bow", "cross": "cross", "cover": "cover", "phone": "phone",
+            "show": "show", "clasp": "clasp", "hips": "hips"}
+GESTURE_SECS = {"point": 1.8, "shrug": 1.6, "think": 2.4, "bow": 1.5, "cross": 2.4, "cover": 1.8, "phone": 5.0, "show": 2.2, "clasp": 2.0, "hips": 2.4}
 VERBS = {}
 for _v, _ws in {
     "enter": "enters enter", "walk": "walks walk goes go moves move steps step heads", "run": "runs run dashes dash hurries hurry rushes rush",
@@ -102,6 +109,9 @@ for _v, _ws in {
     "buy": "buys buy", "eat": "eats eat licks lick nibbles nibble", "drink": "drinks drink sips sip",
     "drop": "drops drop finishes finish puts put throws throw closes close folds fold", "give": "gives give hands hand passes pass shares share",
     "ride": "rides ride", "laugh": "laughs laugh giggles giggle", "nod": "nods nod", "cheer": "cheers cheer",
+    "point": "points point", "shrug": "shrugs shrug", "think": "thinks think ponders ponder", "bow": "bows bow", "cross": "crosses cross",
+    "cover": "covers cover", "phone": "phones phone calls call", "show": "shows show presents present", "clasp": "clasps clasp pleads plead",
+    "hips": "akimbo",
 }.items():
     for _w in _ws.split():
         VERBS[_w] = _v
@@ -123,8 +133,11 @@ def parse_dir(text):
     verb_w, arg = m[2].lower(), m[3].strip()
     if verb_w not in VERBS:
         raise ValueError(f"unknown action '{verb_w}' in '{text}'. Actions: enters, walks to, runs to, exits, looks <feeling>, faces, "
-                         f"waves, jumps, laughs, nods, cheers, holds/buys <item>, eats, drinks, drops, gives <item> to <name>, rides, wait")
+                         f"waves, jumps, laughs, nods, cheers, points, shrugs, thinks, bows, crosses arms, covers mouth, phones, shows, clasps hands, "
+                         f"puts hands on hips, holds/buys <item>, eats, drinks, drops, gives <item> to <name>, rides, wait")
     verb = VERBS[verb_w]
+    if verb == "drop" and verb_w in ("puts", "put") and re.search(r"hands?\s+on\s+(her\s+|his\s+|their\s+)?hips", arg, re.I):
+        verb, arg = "hips", ""
     if verb == "look":
         a = re.sub(r"^(at\s+)", "", arg, flags=re.I).strip()
         if arg.lower().startswith("at "):
@@ -133,6 +146,8 @@ def parse_dir(text):
             if a.lower() not in EXPRS:
                 raise ValueError(f"unknown feeling '{arg}' in '{text}'. Feelings: {', '.join(sorted(set(EXPRS)))}")
             arg = a.lower()
+    elif verb == "hold" and re.search(r"phone.*\bear\b|\bear\b.*phone", arg, re.I):
+        verb, arg = "phone", ""
     elif verb in ("hold", "buy"):
         arg = item_name(arg)
     elif verb == "eat":
@@ -174,6 +189,7 @@ class Stage:
         self.moves, self.vis, self.expr, self.face = mk(), mk(), mk(), mk()
         self.wave, self.hop, self.item, self.eat, self.rides = mk(), mk(), mk(), mk(), mk()
         self.umb = mk()                              # umbrella in hand (separate from the item slot)
+        self.pose = mk()                             # (t0, t1, pose name): gestures held with a short ease in / out
         self.weather, self.tod = None, None          # None | rain | storm | snow  /  None | morning | day | sunset | night
         self.explicit = dict(weather=False, tod=False, umb=False)
         self.has_rain, self.title = False, ""
@@ -297,6 +313,13 @@ class Stage:
                 it, bite = name, b
         return it, bite
 
+    def pose_at(self, nm, t):
+        """(pose name, blend 0..1) while a gesture is on, else None. The blend eases in and out over 0.3 s."""
+        for t0, t1, name in reversed(self.pose[nm]):
+            if t0 <= t < t1:
+                return name, _smooth(max(0.0, min((t - t0) / 0.3, (t1 - t) / 0.3, 1.0)))
+        return None
+
     def state(self, nm, t):
         speed = 0.0
         for t0, t1, x0, x1 in self.moves[nm]:
@@ -310,7 +333,8 @@ class Stage:
                     wave=any(a <= t < b for a, b in self.wave[nm]), hop=hop, ride=ride,
                     pop=next((txt for a, b, n, txt in self.pops if n == nm and a <= t < b), None),
                     expr=self._last(self.expr[nm], t, "neutral"), face=face, mirror=(face != self.dflt_face[nm]),
-                    item=item, bite=bite, eating=any(a <= t < b for a, b in self.eat[nm]), umb=self._last(self.umb[nm], t, False))
+                    item=item, bite=bite, eating=any(a <= t < b for a, b in self.eat[nm]), umb=self._last(self.umb[nm], t, False),
+                    pose=self.pose_at(nm, t))
 
     # -- compile directives into keyframes
     def _target(self, nm, arg, t):
@@ -401,6 +425,13 @@ class Stage:
                 else:
                     raise ValueError(f"'{text}': face left, right or a name")
                 self.face[nm].append((t, f)); dur = max(dur, 0.4)
+            elif verb in GESTURES:
+                mm = re.search(r"\bfor\s+([\d.]+)", arg)
+                secs = float(mm[1]) if mm else GESTURE_SECS[GESTURES[verb]]
+                self.pose[nm].append((t, t + secs, GESTURES[verb]))
+                if GESTURES[verb] == "phone":
+                    self.item[nm].append((t, "phone", 0)); self.item[nm].append((t + secs, None, 0))
+                dur = max(dur, 0.7 if GESTURES[verb] != "bow" else secs)    # the gesture goes on while the next line is spoken
             elif verb == "wave":
                 self.wave[nm].append((t, t + 1.6)); dur = max(dur, 1.6)
             elif verb == "hop":
@@ -699,13 +730,17 @@ _WARNED = set()
 _RIG_CACHE = {}
 
 
-def _rig_svg(name, mouth, blink, expr, walk, arm, out, item, bite, umb, t):
+def _rig_svg(name, mouth, blink, expr, walk, arm, out, item, bite, umb, t, pose=None, pk=1.0):
     w, h = int(L.SPRITE_W * out), int(L.SPRITE_H * out * 960 / 760)
-    held = bool(item or umb) and not arm
-    im = RS.render(name, L.CHARS.get(name), mouth, blink, expr, walk, arm, held, t, w, h)
+    prop = item if item in RIGPROPS else None
+    if prop:
+        item = None
+    held = bool(item or umb or prop) and not arm
+    im = RS.render(name, L.CHARS.get(name), mouth, blink, expr, walk, arm, held, t, w, h, pose, pk, prop)
+    held = held and bool(item or umb)
     if im is not None and held:
         # held item / folded umbrella: drawn with the original helpers on a 2x layer (smooth edges), at the rig's right hand
-        hx, hy = RS.held_hand(walk)
+        hx, hy = RS.hand_B(walk, pose, pk)
         kk = 2.0 * w / 583.0
         layer = Image.new("RGBA", (2 * w, 2 * h), (0, 0, 0, 0)); d = ImageDraw.Draw(layer)
         ox, oy = hx - 383 + 12, hy - 650 + 10
@@ -721,19 +756,20 @@ def _rig_svg(name, mouth, blink, expr, walk, arm, out, item, bite, umb, t):
     return im
 
 
-def rig(name, mouth, blink, expr, walk, arm, out, item=None, bite=0, umb=False, t=0.0):
+def rig(name, mouth, blink, expr, walk, arm, out, item=None, bite=0, umb=False, t=0.0, pose=None, pk=1.0):
     """Rigged characters (separate head / eyes / mouth / two-joint arms / legs, see rigsvg.py).
     Same call as before (plus the time t); falls back to the classic drawing if rigsvg or resvg is unavailable."""
     if RIG_SVG and RS is not None:
         try:
             tq = round(t * 12) / 12
-            key = (name, mouth, blink, expr, walk, arm, out, item, bite, umb, tq)
+            pk = round(float(pk) * 10) / 10
+            key = (name, mouth, blink, expr, walk, arm, out, item, bite, umb, tq, pose, pk)
             im = _RIG_CACHE.get(key)
             if im is None:
-                im = _rig_svg(name, mouth, blink, expr, walk, arm, out, item, bite, umb, tq)
+                im = _rig_svg(name, mouth, blink, expr, walk, arm, out, item, bite, umb, tq, pose, pk)
                 if im is None:
                     raise ValueError("no rig for this character")
-                if len(_RIG_CACHE) > 48:
+                if len(_RIG_CACHE) > 160:
                     _RIG_CACHE.pop(next(iter(_RIG_CACHE)))
                 _RIG_CACHE[key] = im
             return im
@@ -1060,7 +1096,9 @@ def draw_characters(R, fr, seg, i, tt, who, mouth):
         mth = int(mouth) if speaking else (1 if st["eating"] and int(tt * 4) % 2 else 0)
         has_umb = bool(st.get("umb"))
         is_open = has_umb and rainy
-        s = rig(nm, mth, blink, st["expr"], walk, arm, L.STAGE_OUT, st["item"], min(3, st["bite"]), has_umb and not is_open, t=tt)
+        pz = st.get("pose")
+        s = rig(nm, mth, blink, st["expr"], walk, arm, L.STAGE_OUT, st["item"], min(3, st["bite"]), has_umb and not is_open, t=tt,
+                pose=(pz[0] if pz else None), pk=(pz[1] if pz else 1.0))
         if st["mirror"]:
             s = ImageOps.mirror(s)
         if st["walking"]:

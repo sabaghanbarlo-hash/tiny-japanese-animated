@@ -1,0 +1,37 @@
+title: Animation Test - The Phone Call
+scene: home
+
+[story]
+@scene home
+> Mika enters left
+& Alex enters right
+> Mika looks worried
+> Mika phones for 7
+Mika: もしもし？ はい、わたしです。 | Hello? Yes, this is me.
+> Alex looks curious
+> Alex thinks
+Alex: だれ？ | Who is it?
+> Mika covers her mouth
+> Mika looks surprised
+Mika: ほんとう？ やります！ | Really? I'll do it!
+> Mika looks thrilled
+> Mika cheers
+> Alex shrugs
+> Alex looks smirking
+Alex: すごいね！ | Amazing!
+@scene town
+> both walk to 55
+> Alex looks excited
+> Alex holds the cake
+Alex: ケーキを かおう！ | Let's buy a cake!
+> Mika looks annoyed
+> Mika puts hands on her hips
+Mika: だめ！ しごとが さき！ | No! Work comes first!
+> Alex looks worried
+> Alex points right
+Alex: あそこで たべよう。 | Let's eat over there.
+> Mika crosses arms
+> Mika looks smirking
+Mika: ……いいよ。 | ...Okay.
+> Mika bows
+Mika: ありがとう！ | Thank you!
