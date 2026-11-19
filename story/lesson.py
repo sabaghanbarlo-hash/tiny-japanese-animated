@@ -502,6 +502,14 @@ def parse_script(path):
                     die(f"line {n}: {e}")
                 pending_dirs.append((m[1].lower(), val, False))
                 continue
+            m = re.match(r"^@camera\s+(.+)$", s, re.I)
+            if m:
+                try:
+                    cam = A.parse_camera(m[1])
+                except ValueError as e:
+                    die(f"line {n}: {e}")
+                pending_dirs.append(("camera", cam, False))
+                continue
             m = re.match(r"^([>&])\s*(.+)$", s)
             if m:
                 try:
@@ -830,6 +838,7 @@ class Renderer:
 
     # ---- stage (story / title / outro)
     def stage(self, seg, i, tt, who, mouth):
+        self._who = who
         name = seg.get("scene")
         var = seg.get("variant", 0)
         bg, fg = self.scene(name, var)
@@ -838,6 +847,7 @@ class Renderer:
             fr = Image.blend(self.scene(seg["prev_scene"])[0], fr, min(1, (tt - seg["start"]) / 0.5))
         A.draw_characters(self, fr, seg, i, tt, who, mouth)
         fr.paste(fg, (0, FLOOR_Y - 40), fg)
+        fr = A.apply_camera(self, fr, seg, tt)          # zoom / pan / close-ups; the subtitle card below stays un-zoomed
         if seg["kind"] == "story":
             ln = seg["line"]
             cd = self.cached(("story", id(ln)), lambda: story_card(ln))

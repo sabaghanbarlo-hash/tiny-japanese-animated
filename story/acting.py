@@ -7,7 +7,7 @@ wheel). Every frame asks Stage.state() what each character is doing. Places have
 Alex art as lesson.py, parameterised (walk cycle, waving arm, expressions, held item).
 """
 import functools, math, os, re
-from PIL import Image, ImageDraw, ImageOps
+from PIL import Image, ImageDraw, ImageFilter, ImageOps
 import atmos as AT
 import scenery as SC
 try:
@@ -95,6 +95,57 @@ def bind(mod):
 # ------------------------------------------------------------------ directive parsing
 def _names():
     return {k.lower(): k for k in L.CHARS}
+
+
+CAM_Z = {"wide": 1.0, "medium": 1.35, "close": 1.8}
+
+
+def parse_camera(text):
+    """'@camera ...' -> dict(z, tgt, dur). Cuts are instant; pan / push / pull move smoothly.
+    wide | medium [on X] | close [on X] | two shot | pan to X | push in [on X] | pull out.  X = a character, 'both' or 'speaker'."""
+    t = re.sub(r"\s+", " ", text.strip().lower())
+    who = {n.lower(): n for n in L.CHARS}
+
+    def tgt(s, default):
+        s = (s or "").strip()
+        if not s:
+            return default
+        if s in ("both", "them", "everyone", "all", "two", "both of them"):
+            return "both"
+        if s in ("speaker", "whoever speaks", "the speaker"):
+            return "speaker"
+        if s in who:
+            return who[s]
+        raise ValueError(f"camera: don't know '{s}'. Use {', '.join(L.CHARS)}, both or speaker. Example: @camera close on {next(iter(L.CHARS))}")
+    m = re.match(r"^(?:cut to )?(wide|medium|close)(?:[- ]?up)?(?: (?:on|of) (.+))?$", t)
+    if m:
+        return dict(z=CAM_Z[m[1]], tgt=tgt(m[2], "speaker" if m[1] == "close" else "both"), dur=0.0)
+    if t in ("two shot", "two-shot"):
+        return dict(z=CAM_Z["medium"], tgt="both", dur=0.0)
+    m = re.match(r"^pan(?: to)?(?: (.+))?$", t)
+    if m:
+        return dict(z=CAM_Z["medium"], tgt=tgt(m[1], "speaker"), dur=0.9)
+    m = re.match(r"^(?:push|zoom)(?: in)?(?: (?:on|to) (.+))?$", t)
+    if m:
+        return dict(z=1.4, tgt=tgt(m[1], "speaker"), dur=5.0)
+    if re.match(r"^(?:pull|zoom)(?: |-)?out$", t) or t in ("reset", "pull back"):
+        return dict(z=1.0, tgt="both", dur=1.5)
+    raise ValueError(f"camera: don't understand '{text}'. Try: wide | medium on Mika | close on Alex | two shot | pan to Alex | push in on both | pull out")
+
+
+def apply_camera(R, fr, seg, tt):
+    """Crop + scale the composed scene (characters, scenery) for the current camera move; no-op until a @camera line is used."""
+    stage = R.B["stage"]
+    if not stage.cam or seg["kind"] not in ("story", "act"):
+        return fr
+    z, cx, cy = stage.cam_state(tt, getattr(R, "_lay", {}), getattr(R, "_who", None))
+    if z <= 1.002:
+        return fr
+    W, H = fr.size
+    cw, ch = W / z, H / z
+    x0 = min(max(cx - cw / 2, 0), W - cw); y0 = min(max(cy - ch / 2, 0), H - ch)
+    out = fr.transform((W, H), Image.EXTENT, (x0, y0, x0 + cw, y0 + ch), Image.BICUBIC)
+    return out.filter(ImageFilter.UnsharpMask(radius=2, percent=70, threshold=2))
 
 
 GESTURES = {"point": "point", "shrug": "shrug", "think": "think", "bow": "bow", "cross": "cross", "cover": "cover", "phone": "phone",
@@ -190,6 +241,7 @@ class Stage:
         self.wave, self.hop, self.item, self.eat, self.rides = mk(), mk(), mk(), mk(), mk()
         self.umb = mk()                              # umbrella in hand (separate from the item slot)
         self.pose = mk()                             # (t0, t1, pose name): gestures held with a short ease in / out
+        self.cam = []                                # camera keyframes (t, seconds to get there, zoom, target)
         self.weather, self.tod = None, None          # None | rain | storm | snow  /  None | morning | day | sunset | night
         self.explicit = dict(weather=False, tod=False, umb=False)
         self.has_rain, self.title = False, ""
@@ -312,6 +364,41 @@ class Stage:
             if tt <= t:
                 it, bite = name, b
         return it, bite
+
+    def set_camera(self, spec, t):
+        if self.cam and self.cam[-1][0] > t:
+            t = self.cam[-1][0]
+        self.cam.append((t, spec["dur"], spec["z"], spec["tgt"]))
+
+    def cam_reset(self, t):
+        """A new place starts on a wide shot (only if the camera is still zoomed in)."""
+        if self.cam and self.cam[-1][2] > 1.0:
+            self.set_camera(dict(z=1.0, tgt="both", dur=0.0), t)
+
+    def cam_state(self, tt, lay, who=None):
+        """(zoom, centre x, centre y) of the camera at time tt; targets follow the characters while they move."""
+        W, H = L.W, L.H
+
+        def centre(tgt):
+            if tgt == "speaker":
+                tgt = who if who in lay else "both"
+            if tgt in lay:
+                return lay[tgt]["cx"], lay[tgt]["fy"]
+            if not lay:
+                return W / 2, H / 2
+            return sum(e["cx"] for e in lay.values()) / len(lay), sum(e["fy"] for e in lay.values()) / len(lay)
+
+        def key(i, t):
+            t0, dur, z, tgt = self.cam[i]
+            pz, px, py = (1.0, W / 2, H / 2) if i == 0 else key(i - 1, t0)
+            qx, qy = centre(tgt)
+            u = 1.0 if dur <= 0 else _smooth(max(0.0, min(1.0, (t - t0) / dur)))
+            return pz + (z - pz) * u, px + (qx - px) * u, py + (qy - py) * u
+        idx = -1
+        for i, k in enumerate(self.cam):
+            if k[0] <= tt:
+                idx = i
+        return (1.0, W / 2, H / 2) if idx < 0 else key(idx, tt)
 
     def pose_at(self, nm, t):
         """(pose name, blend 0..1) while a gesture is on, else None. The blend eases in and out over 0.3 s."""
@@ -519,6 +606,8 @@ class Stage:
 def story_line(tr, stage, mark, ln, prev):
     """Directions (as animated 'act' segments), then the spoken line. Returns the current scene."""
     prev_box = [prev]
+    if prev and ln.get("scene") and ln["scene"] != prev:
+        stage.cam_reset(tr.t)
 
     def run(items, cur):
         group = []
@@ -544,6 +633,9 @@ def story_line(tr, stage, mark, ln, prev):
             elif it[0] in ("weather", "time"):
                 flush(cur)
                 stage.set_atmos(it[0], it[1])
+            elif it[0] == "camera":
+                flush(cur)
+                stage.set_camera(it[1], tr.t)
             else:
                 group.append((it[1], it[2]))
         flush(cur)
@@ -1113,6 +1205,7 @@ def draw_characters(R, fr, seg, i, tt, who, mouth):
         y0 = SOLE_Y - (s.height - _sole_pad(nm))           # sprite top when the soles are on the ground
         lay.append(dict(nm=nm, st=st, s=s, x=int(st["x"] - s.width // 2), y=int(y0 - bob), y0=int(y0),
                         cx=st["x"], mirror=st["mirror"], open=is_open, speaking=speaking))
+    R._lay = {e["nm"]: dict(cx=e["cx"], fy=e["y"] + 0.42 * e["s"].height) for e in lay}      # where the camera aims (face / chest)
     shelters = AT.draw_umbrellas(fr, lay) if rainy else []
     markers = []
     for e in lay:

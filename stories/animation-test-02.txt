@@ -1,0 +1,49 @@
+title: Animation Test 2 - Camera
+scene: home
+
+[story]
+@scene home
+> Mika enters left
+& Alex enters right
+@camera medium
+> Mika looks worried
+> Mika phones for 7
+@camera close on Mika
+Mika: もしもし？ はい、わたしです。 | Hello? Yes, this is me.
+@camera wide
+> Alex looks curious
+> Alex thinks
+@camera pan to Alex
+Alex: だれ？ | Who is it?
+@camera close on Mika
+> Mika covers her mouth
+> Mika looks surprised
+Mika: ほんとう？ やります！ | Really? I'll do it!
+@camera wide
+> Mika looks thrilled
+> Mika cheers
+> Alex shrugs
+> Alex looks smirking
+@camera push in on both
+Alex: すごいね！ | Amazing!
+@scene town
+> both walk to 55
+@camera medium
+> Alex looks excited
+> Alex holds the cake
+@camera close on Alex
+Alex: ケーキを かおう！ | Let's buy a cake!
+@camera two shot
+> Mika looks annoyed
+> Mika puts hands on her hips
+Mika: だめ！ しごとが さき！ | No! Work comes first!
+> Alex looks worried
+> Alex points right
+@camera pan to Alex
+Alex: あそこで たべよう。 | Let's eat over there.
+@camera pull out
+> Mika crosses arms
+> Mika looks smirking
+Mika: ……いいよ。 | ...Okay.
+> Mika bows
+Mika: ありがとう！ | Thank you!
