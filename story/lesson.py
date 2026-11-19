@@ -33,6 +33,13 @@ CHARS = {
                  accent=(222, 110, 134), long_hair=True, x=150),
     "Alex": dict(voice="ja-JP-KeitaNeural", hair=(139, 98, 64), skin=(250, 214, 190), top=(142, 178, 150),
                  accent=(96, 150, 112), long_hair=False, x=W - 150 - SPRITE_W),
+    # Supporting characters (extra=True): not on stage unless a script uses them ("Ono enters right" / "Ono: ..."), no thumbnail, never part of "both".
+    "Sakamoto": dict(voice="ja-JP-KeitaNeural", pitch="-18Hz", hair=(176, 176, 184), skin=(238, 205, 180), top=(88, 98, 124),
+                     accent=(104, 116, 150), long_hair=False, x=W // 2 - SPRITE_W // 2, extra=True),
+    "Ono": dict(voice="ja-JP-KeitaNeural", pitch="-8Hz", hair=(58, 52, 54), skin=(240, 206, 176), top=(236, 236, 240),
+                accent=(196, 120, 70), long_hair=False, x=W // 2 - SPRITE_W // 2, extra=True),
+    "Hana": dict(voice="ja-JP-NanamiNeural", pitch="+10Hz", hair=(118, 72, 52), skin=(250, 218, 196), top=(150, 190, 214),
+                 accent=(96, 150, 190), long_hair=False, x=W // 2 - SPRITE_W // 2, extra=True),
 }
 NARRATOR_VOICE = "en-US-AriaNeural"
 
@@ -627,7 +634,7 @@ def synth(text, who, out_wav, rate, dummy=False):
     for attempt in range(1, 6):
         try:
             import edge_tts
-            asyncio.run(edge_tts.Communicate(text, voice, rate=rate).save(mp3))
+            asyncio.run(edge_tts.Communicate(text, voice, rate=rate, pitch=(CHARS[who].get("pitch", "+0Hz") if jp else "+0Hz")).save(mp3))
             ok = True
             break
         except Exception as e:
@@ -949,6 +956,8 @@ def thumbnail(R, path):
     seg = R.B["segs"][0]
     bg, fg = R.scene(seg["scene"]); fr = bg.copy()
     for nm, c in CHARS.items():
+        if c.get("extra"):
+            continue
         s = sprite(nm, 2 if nm == "Mika" else 1, False); fr.paste(s, (c["x"], CHAR_Y + 70), s)
     fr.paste(fg, (0, FLOOR_Y - 40), fg)
     d = ImageDraw.Draw(fr, "RGBA"); ep = f"Ep.{R.meta['episode']}" if R.meta.get("episode") else "TINY JAPANESE"

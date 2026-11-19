@@ -1,0 +1,29 @@
+title: Animation Test 4 - Supporting Characters
+scene: town
+
+[story]
+@scene town
+> Mika enters left
+& Alex enters right
+> Sakamoto enters right
+& Sakamoto holds a broom
+Mika: さかもとさん、おはようございます！ | Good morning, Mr. Sakamoto!
+> Mika looks curious
+Mika: おいしい みせを さがしています。 | We are looking for a tasty shop.
+> Sakamoto thinks
+Sakamoto: ゆうめいな みせより、おいしい みせが いい。 | A tasty shop is better than a famous one.
+> Sakamoto points right
+Sakamoto: あそこの たまごやきの みせが いいよ。 | The egg-roll shop over there is good.
+> Mika bows
+> Sakamoto exits right
+Mika: ありがとうございます！ | Thank you very much!
+> Ono enters right
+> Alex looks excited
+Ono: いらっしゃい！ | Welcome!
+Alex: たまごやきを ふたつ ください。 | Two egg rolls, please.
+> Ono shows
+Ono: はい、どうぞ。 | Here you are.
+> Mika looks surprised
+Mika: あつい！ でも、おいしい！ | Hot! But delicious!
+> Ono looks smirking
+Ono: ありがとう！ | Thank you!

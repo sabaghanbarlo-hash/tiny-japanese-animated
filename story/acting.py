@@ -180,7 +180,7 @@ def parse_dir(text):
         raise ValueError(f"can't read the stage direction '{text}'. Use e.g. 'Mika enters left', 'Alex walks to center', "
                          f"'Mika looks confused', 'Mika buys cotton candy', 'both ride the carousel', 'wait 1'")
     who = m[1].lower()
-    whos = list(L.CHARS) if who in ("both", "everyone", "they") else [names[who]]
+    whos = [n for n in L.CHARS if not L.CHARS[n].get("extra")] if who in ("both", "everyone", "they") else [names[who]]
     verb_w, arg = m[2].lower(), m[3].strip()
     if verb_w not in VERBS:
         raise ValueError(f"unknown action '{verb_w}' in '{text}'. Actions: enters, walks to, runs to, exits, looks <feeling>, faces, "
@@ -247,7 +247,7 @@ class Stage:
         self.has_rain, self.title = False, ""
         self.visits, self._scene_seen, self._w_mark = {}, None, None
         self.pops = []                               # (t0, t1, name, text)
-        self.start_vis = {nm: True for nm in L.CHARS}
+        self.start_vis = {nm: not L.CHARS[nm].get("extra") for nm in L.CHARS}      # supporting characters start off stage
         self.start_x = dict(self.home)
 
     # -- setup
@@ -264,6 +264,13 @@ class Stage:
                         if verb == "enter":
                             self.start_vis[nm] = False
                             self.start_x[nm] = self._off(nm, "left" if self.home[nm] < self.W / 2 else "right")
+                        elif L.CHARS[nm].get("extra"):
+                            self.start_vis[nm] = True          # first used without entering: already standing there
+            sp = ln.get("speaker")
+            if sp in L.CHARS and sp not in seen:
+                seen.add(sp)
+                if L.CHARS[sp].get("extra"):
+                    self.start_vis[sp] = True
 
     def _off(self, nm, side):
         return -L.SPRITE_W if side == "left" else self.W + L.SPRITE_W
@@ -595,12 +602,15 @@ class Stage:
 
     def line(self, speaker, a, b):
         """The speaker turns to the other visible character (and vice versa) when a line starts."""
-        for other in L.CHARS:
-            if other != speaker and self.vis_at(other, a) and self.vis_at(speaker, a):
-                xs, xo = self.x_at(speaker, a), self.x_at(other, a)
-                if abs(xs - xo) > 5:
-                    self.face[speaker].append((a, 1 if xo > xs else -1))
-                    self.face[other].append((a, 1 if xs > xo else -1))
+        if not self.vis_at(speaker, a):
+            return
+        xs = self.x_at(speaker, a)
+        others = [o for o in L.CHARS if o != speaker and self.vis_at(o, a) and abs(self.x_at(o, a) - xs) > 5]
+        if others:
+            near = min(others, key=lambda o: abs(self.x_at(o, a) - xs))          # the speaker turns to the nearest listener
+            self.face[speaker].append((a, 1 if self.x_at(near, a) > xs else -1))
+        for other in others:                                                       # everyone else turns to the speaker
+            self.face[other].append((a, 1 if xs > self.x_at(other, a) else -1))
 
 
 def story_line(tr, stage, mark, ln, prev):
