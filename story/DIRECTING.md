@@ -103,3 +103,13 @@ By default the camera is a fixed wide shot. Put an `@camera` line before a direc
 - Zoomed shots are scaled up from the normal frame, so keep close-ups for short moments.
 
 Zoom levels are deliberately gentle: medium = 1.15x, close = 1.4x. Change `CAM_Z` in `story/acting.py` if you want them stronger.
+
+
+## Back to the viewer
+
+```
+> Mika faces away          # seen from behind: hair and back only, no face (also: turns away / looks away)
+> Mika turns around        # back to the front (also: faces front / faces us)
+```
+
+Characters keep speaking while turned away. Facial expressions are not visible from behind.

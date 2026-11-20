@@ -148,6 +148,8 @@ def apply_camera(R, fr, seg, tt):
     return out.filter(ImageFilter.UnsharpMask(radius=2, percent=70, threshold=2))
 
 
+BACK_ON = {"away", "back", "backwards", "away from us", "away from the camera", "back to us", "back to the camera", "to the window"}
+BACK_OFF = {"around", "front", "forward", "us", "the front", "the camera", "us again", "round", "to us"}
 GESTURES = {"point": "point", "shrug": "shrug", "think": "think", "bow": "bow", "cross": "cross", "cover": "cover", "phone": "phone",
             "show": "show", "clasp": "clasp", "hips": "hips"}
 GESTURE_SECS = {"point": 1.8, "shrug": 1.6, "think": 2.4, "bow": 1.5, "cross": 2.4, "cover": 1.8, "phone": 5.0, "show": 2.2, "clasp": 2.0, "hips": 2.4}
@@ -193,6 +195,8 @@ def parse_dir(text):
         a = re.sub(r"^(at\s+)", "", arg, flags=re.I).strip()
         if arg.lower().startswith("at "):
             verb, arg = "face", a
+        elif a.lower() in BACK_ON | BACK_OFF:
+            verb, arg = "face", a.lower()
         else:
             if a.lower() not in EXPRS:
                 raise ValueError(f"unknown feeling '{arg}' in '{text}'. Feelings: {', '.join(sorted(set(EXPRS)))}")
@@ -241,6 +245,7 @@ class Stage:
         self.wave, self.hop, self.item, self.eat, self.rides = mk(), mk(), mk(), mk(), mk()
         self.umb = mk()                              # umbrella in hand (separate from the item slot)
         self.pose = mk()                             # (t0, t1, pose name): gestures held with a short ease in / out
+        self.back = mk()                             # (t, True/False): seen from behind (back to the viewer)
         self.cam = []                                # camera keyframes (t, seconds to get there, zoom, target)
         self.weather, self.tod = None, None          # None | rain | storm | snow  /  None | morning | day | sunset | night
         self.explicit = dict(weather=False, tod=False, umb=False)
@@ -428,7 +433,7 @@ class Stage:
                     pop=next((txt for a, b, n, txt in self.pops if n == nm and a <= t < b), None),
                     expr=self._last(self.expr[nm], t, "neutral"), face=face, mirror=(face != self.dflt_face[nm]),
                     item=item, bite=bite, eating=any(a <= t < b for a, b in self.eat[nm]), umb=self._last(self.umb[nm], t, False),
-                    pose=self.pose_at(nm, t))
+                    pose=self.pose_at(nm, t), back=self._last(self.back[nm], t, False))
 
     # -- compile directives into keyframes
     def _target(self, nm, arg, t):
@@ -509,6 +514,8 @@ class Stage:
                 dur = max(dur, d)
             elif verb == "look":
                 self.expr[nm].append((t, EXPRS[arg])); dur = max(dur, 1.3)
+            elif verb == "face" and arg.lower().strip() in BACK_ON | BACK_OFF:
+                self.back[nm].append((t, arg.lower().strip() in BACK_ON)); dur = max(dur, 0.5)
             elif verb == "face":
                 a = arg.lower().strip()
                 names = _names()
@@ -832,13 +839,13 @@ _WARNED = set()
 _RIG_CACHE = {}
 
 
-def _rig_svg(name, mouth, blink, expr, walk, arm, out, item, bite, umb, t, pose=None, pk=1.0):
+def _rig_svg(name, mouth, blink, expr, walk, arm, out, item, bite, umb, t, pose=None, pk=1.0, back=False):
     w, h = int(L.SPRITE_W * out), int(L.SPRITE_H * out * 960 / 760)
     prop = item if item in RIGPROPS else None
     if prop:
         item = None
     held = bool(item or umb or prop) and not arm
-    im = RS.render(name, L.CHARS.get(name), mouth, blink, expr, walk, arm, held, t, w, h, pose, pk, prop)
+    im = RS.render(name, L.CHARS.get(name), mouth, blink, expr, walk, arm, held, t, w, h, pose, pk, prop, back)
     held = held and bool(item or umb)
     if im is not None and held:
         # held item / folded umbrella: drawn with the original helpers on a 2x layer (smooth edges), at the rig's right hand
@@ -858,17 +865,17 @@ def _rig_svg(name, mouth, blink, expr, walk, arm, out, item, bite, umb, t, pose=
     return im
 
 
-def rig(name, mouth, blink, expr, walk, arm, out, item=None, bite=0, umb=False, t=0.0, pose=None, pk=1.0):
+def rig(name, mouth, blink, expr, walk, arm, out, item=None, bite=0, umb=False, t=0.0, pose=None, pk=1.0, back=False):
     """Rigged characters (separate head / eyes / mouth / two-joint arms / legs, see rigsvg.py).
     Same call as before (plus the time t); falls back to the classic drawing if rigsvg or resvg is unavailable."""
     if RIG_SVG and RS is not None:
         try:
             tq = round(t * 12) / 12
             pk = round(float(pk) * 10) / 10
-            key = (name, mouth, blink, expr, walk, arm, out, item, bite, umb, tq, pose, pk)
+            key = (name, mouth, blink, expr, walk, arm, out, item, bite, umb, tq, pose, pk, back)
             im = _RIG_CACHE.get(key)
             if im is None:
-                im = _rig_svg(name, mouth, blink, expr, walk, arm, out, item, bite, umb, tq, pose, pk)
+                im = _rig_svg(name, mouth, blink, expr, walk, arm, out, item, bite, umb, tq, pose, pk, back)
                 if im is None:
                     raise ValueError("no rig for this character")
                 if len(_RIG_CACHE) > 160:
@@ -1200,7 +1207,7 @@ def draw_characters(R, fr, seg, i, tt, who, mouth):
         is_open = has_umb and rainy
         pz = st.get("pose")
         s = rig(nm, mth, blink, st["expr"], walk, arm, L.STAGE_OUT, st["item"], min(3, st["bite"]), has_umb and not is_open, t=tt,
-                pose=(pz[0] if pz else None), pk=(pz[1] if pz else 1.0))
+                pose=(pz[0] if pz else None), pk=(pz[1] if pz else 1.0), back=st.get("back", False))
         if st["mirror"]:
             s = ImageOps.mirror(s)
         if st["walking"]:

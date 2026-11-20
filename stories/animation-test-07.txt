@@ -1,0 +1,19 @@
+title: Animation Test 7 - Back to the Viewer
+scene: apartment
+
+[story]
+@scene apartment
+> Mika enters left
+& Alex enters right
+> Mika faces away
+Alex: ミカ、どうしたの？ | Mika, what's wrong?
+Mika: ……なんでもない。 | ...Nothing.
+> Alex looks worried
+> Alex shrugs
+Alex: ほんとうに？ | Really?
+> Mika turns around
+> Mika looks worried
+Mika: ほんとうは、しごとが ちょっと こわい。 | Actually, I'm a little scared of the work.
+> Alex looks smirking
+Alex: だいじょうぶ、できるよ！ | It's okay, you can do it!
+> Mika looks happy

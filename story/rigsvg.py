@@ -92,7 +92,9 @@ def _marinette():
     tl = ell((80, 470, 206, 650), NV)+poly(lock((160, 440), (150, 470), (136, 520), 54), NV)+ell((146, 456, 170, 486), H((206, 54, 64)))+line(bez((110, 520), (100, 570), (130, 620), 10), NVL, 5)
     tr = ell((354, 470, 480, 650), NV)+poly(lock((400, 440), (410, 470), (424, 520), 54), NV)+ell((390, 456, 414, 486), H((206, 54, 64)))+line(bez((450, 520), (460, 570), (430, 620), 10), NVL, 5)
     ll, rl = _plain_legs("#3b4160")
-    return dict(k='fr', lash=1, br=(NVD, (211, 312), (349, 312)), hb=hb, torso=torso, hf=face+bangs, tails=(tl, tr), arms=_arm(JK, 70, 28, SK, SK),
+    bk = hb+ell((108, 280, 452, 470), NV)+"".join(line(bez(r_, c_, t_, 10), NVL, 6) for r_, c_, t_ in (((200, 150), (176, 250), (206, 370)), ((290, 140), (300, 250), (284, 380)), ((372, 150), (396, 250), (366, 370))))
+    tb = rrect((185, 450, 375, 800), 60, JK)+ell((246, 436, 314, 486), SK)+line([(280, 492), (280, 790)], H((62, 54, 60)), 4)
+    return dict(k='fr', lash=1, br=(NVD, (211, 312), (349, 312)), hb=hb, torso=torso, hf=face+bangs, bk=bk, tb=tb, tails=(tl, tr), arms=_arm(JK, 70, 28, SK, SK),
                 A=(175, 512), B=(385, 512), low='', legs=(ll, rl))
 
 
@@ -113,7 +115,9 @@ def _adrien():
           + "".join(line(bez(*a, 8), GL, 5) for a in (((340, 130), (300, 150), (268, 178)), ((240, 126), (212, 146), (196, 176)))))
     hf = ell((130, 316, 180, 396), SK)+ell((136, 154, 424, 462), SK)+ell((166, 398, 210, 422), H((252, 190, 190)))+ell((350, 398, 394, 422), H((252, 190, 190)))+fr
     ll, rl = _plain_legs("#3c4048")
-    return dict(k='fr', lash=0, br=(H((206, 154, 88)), (211, 310), (349, 304)), hb=hb, torso=torso, hf=hf, tails=None, arms=_arm(WH, 70, 28, SK, SK),
+    bk = hb+ell((112, 300, 448, 466), G)+"".join(line(bez(*a_, 10), GD, 6) for a_ in (((190, 150), (176, 250), (200, 380)), ((280, 130), (290, 250), (276, 390)), ((370, 150), (386, 250), (360, 380))))
+    tb = rrect((185, 450, 375, 800), 60, WH)+poly([(232, 490), (328, 490), (340, 800), (220, 800)], H((42, 36, 42)))+ell((246, 436, 314, 486), SK)
+    return dict(k='fr', lash=0, br=(H((206, 154, 88)), (211, 310), (349, 304)), hb=hb, torso=torso, hf=hf, bk=bk, tb=tb, tails=None, arms=_arm(WH, 70, 28, SK, SK),
                 A=(175, 512), B=(385, 512), low='', legs=(ll, rl))
 
 
@@ -139,7 +143,11 @@ def _jp(c):
         hd += ell((340, 165, 392, 215), acc)+ell((355, 180, 377, 200), H((255, 240, 200)))
     else:
         hd += "".join(f'<path d="M{x} 225H{x+58}L{x+29} 305Z" fill="{h}"/>' for x in range(135, 420, 58))+f'<path d="M262 120H300L282 165Z" fill="{h}"/>'
-    return dict(k='jp', hb=hb, torso=torso, hf=hd, tails=None, arms=_arm(tp, 70, 28, sk, sk), A=(175, 512), B=(385, 512), low=low, legs=tuple(legs))
+    hk = H(tuple(max(0, int(v*0.8)) for v in c["hair"]))
+    bk = ell((118, 138, 442, 464), h)+"".join(line(bez(a_, b_, d_, 10), hk, 6) for a_, b_, d_ in (((200, 170), (186, 280), (206, 400)), ((280, 150), (290, 270), (276, 410)), ((360, 170), (376, 280), (352, 400))))
+    tb = rrect((185, 450, 375, 690), 60, tp)+ell((244, 436, 316, 482), sk)
+    bkl = (rrect((122, 330, 438, 610), 74, h)+line([(280, 360), (280, 590)], hk, 5)) if long_ else ''
+    return dict(k='jp', hb=hb, torso=torso, hf=hd, bk=bk, tb=tb, bkl=bkl, tails=None, arms=_arm(tp, 70, 28, sk, sk), A=(175, 512), B=(385, 512), low=low, legs=tuple(legs))
 
 
 # ------------------------------------------------------------------ faces
@@ -386,7 +394,7 @@ def held_hand(walk):
     return ex-106*math.sin(r(a)), ey+106*math.cos(r(a))
 
 
-def svg(name, c, mouth, blink, expr, walk, arm, held, t, w, h, pose=None, pk=1.0, prop=None):
+def svg(name, c, mouth, blink, expr, walk, arm, held, t, w, h, pose=None, pk=1.0, prop=None, back=False):
     ch = _get(name, c)
     if ch is None: return None
     ph = (sum(map(ord, name)) % 7)*0.9
@@ -417,17 +425,19 @@ def svg(name, c, mouth, blink, expr, walk, arm, held, t, w, h, pose=None, pk=1.0
     if prop in PROP_FRONT and pose == 'hold_box':
         sk = H(skin_rgb(name, c)); pz = POSES['hold_box']
         front = _prop_front(prop)+''.join(f'<circle cx="{p[0]}" cy="{p[1]}" r="26" fill="{sk}" stroke="{sk}" stroke-width="3"/>' for p in (pz['A'], pz['B']))
-    face = _face_jp(expr, mouth, blink) if ch["k"] == 'jp' else _face_fr(ch, expr, mouth, blink)
+    face = '' if back else (_face_jp(expr, mouth, blink) if ch["k"] == 'jp' else _face_fr(ch, expr, mouth, blink))
+    torso_s = (ch["tb"]+ch.get("bkl", '')) if back else ch["torso"]       # seen from behind: plain back, hair only, no face
+    head_s = ch["bk"] if back else ch["hf"]
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="-12 -10 583 1000">'
             f'<g transform="translate(0 {-lfL})">{ch["legs"][0]}</g><g transform="translate(0 {-lfR})">{ch["legs"][1]}</g>{ch["low"]}'
-            f'<g transform="{hT}">{ch["hb"]}</g><g transform="{tT}">{ch["torso"]}</g>{tails}'
+            f'<g transform="{hT}">{ch["hb"]}</g><g transform="{tT}">{torso_s}</g>{tails}'
             f'<g transform="{tT}">{arm_svg(ch["A"], Au, Af, ups, fos)}{arm_svg(ch["B"], Bu, Bf, ups, fos, _prop_hand(prop) if prop in PROP_HAND else "")}{front}</g>'
-            f'<g transform="{hT}">{ch["hf"]}{face}</g></svg>')
+            f'<g transform="{hT}">{head_s}{face}</g></svg>')
 
 
-def render(name, c, mouth, blink, expr, walk, arm, held, t, w, h, pose=None, pk=1.0, prop=None):
+def render(name, c, mouth, blink, expr, walk, arm, held, t, w, h, pose=None, pk=1.0, prop=None, back=False):
     """RGBA sprite of size (w, h), or None if this character cannot be drawn this way."""
     if resvg_py is None: return None
-    s = svg(name, c, int(mouth), bool(blink), expr, int(walk), int(arm), bool(held), float(t), w, h, pose, pk, prop)
+    s = svg(name, c, int(mouth), bool(blink), expr, int(walk), int(arm), bool(held), float(t), w, h, pose, pk, prop, back)
     if s is None: return None
     return Image.open(io.BytesIO(bytes(resvg_py.svg_to_bytes(svg_string=s, width=w, height=h)))).convert("RGBA")
