@@ -20,7 +20,7 @@ SPEED = 380.0       # px / second when walking
 RUN_SPEED = 720.0
 EXPRS = {"neutral": "neutral", "confused": "confused", "puzzled": "confused", "nervous": "confused",
          "lost": "confused", "surprised": "surprised", "shocked": "surprised", "amazed": "surprised",
-         "happy": "happy", "excited": "excited", "smiling": "happy", "glad": "happy", "laughing": "happy",
+         "happy": "happy", "excited": "excited", "smiling": "happy", "glad": "happy", "laughing": "laugh",
          "sad": "sad", "disappointed": "sad", "shy": "shy", "embarrassed": "shy",
          "worried": "worried", "anxious": "worried", "annoyed": "annoyed", "bored": "annoyed", "unimpressed": "annoyed",
          "angry": "angry", "mad": "angry", "furious": "angry", "smirking": "smirk", "smug": "smirk", "cheeky": "smirk", "playful": "smirk",
@@ -534,7 +534,7 @@ class Stage:
                 self.hop[nm].append((t, t + 0.8, 150)); self.expr[nm].append((t, "happy")); self.wave[nm].append((t, t + 1.4))
                 dur = max(dur, 1.4)
             elif verb == "laugh":
-                self.expr[nm].append((t, "happy"))
+                self.expr[nm].append((t, "laugh")); self.expr[nm].append((t + 1.3, "happy"))
                 self.hop[nm].append((t, t + 0.4, 40)); self.hop[nm].append((t + 0.45, t + 0.85, 40)); dur = max(dur, 1.3)
             elif verb == "nod":
                 self.hop[nm].append((t, t + 0.35, 20)); self.hop[nm].append((t + 0.4, t + 0.75, 20)); dur = max(dur, 0.9)
@@ -1195,7 +1195,7 @@ def draw_characters(R, fr, seg, i, tt, who, mouth):
         sp_k = max(0.6, st["speed"] / SPEED) if st["walking"] else 1.0
         walk = (0, 1, 0, 3)[int(tt * 7 * sp_k) % 4] if st["walking"] else 0
         arm = (1 + int(tt * 5) % 2) if st["wave"] else 0
-        mth = int(mouth) if speaking else (1 if st["eating"] and int(tt * 4) % 2 else 0)
+        mth = int(mouth) if speaking else (1 + int(tt * 8) % 2 if st["expr"] == "laugh" else (1 if st["eating"] and int(tt * 4) % 2 else 0))
         has_umb = bool(st.get("umb"))
         is_open = has_umb and rainy
         pz = st.get("pose")

@@ -179,7 +179,7 @@ def _face_jp(expr, mouth, blink):
 
 
 _BR = {"neutral": (0, 0), "happy": (0, -3), "surprised": (0, -12), "confused": (-12, 0), "sad": (-12, 2), "shy": (-6, 0),
-       "worried": (-16, -2), "annoyed": (8, 3), "angry": (15, 5), "smirk": (-4, 0), "joy": (0, -4), "thinking": (-8, -4), "excited": (0, -9), "determined": (9, 1)}
+       "worried": (-16, -2), "annoyed": (8, 3), "angry": (15, 5), "smirk": (-4, 0), "joy": (0, -4), "laugh": (0, -5), "thinking": (-8, -4), "excited": (0, -9), "determined": (9, 1)}
 
 
 def _face_fr(ch, expr, mouth, blink):
@@ -187,8 +187,8 @@ def _face_fr(ch, expr, mouth, blink):
     eyes = ""
     for x in (214, 346):
         side = -1 if x < 280 else 1
-        if blink or expr in ("happy", "joy"):
-            y = 366 if expr in ("happy", "joy") and not blink else 361
+        if blink or expr in ("happy", "joy", "laugh"):
+            y = 366 if expr in ("happy", "joy", "laugh") and not blink else 361
             eyes += f'<path d="M{x-28.2} {y}A30 23 0 0 1 {x+28.2} {y}" fill="none" stroke="#3c222e" stroke-width="8" stroke-linecap="round"/>'
             if c["lash"]: eyes += f'<path d="M{x+side*30} 372L{x+side*42} 362" stroke="#341c28" stroke-width="5" stroke-linecap="round"/>'
             continue
@@ -201,7 +201,11 @@ def _face_fr(ch, expr, mouth, blink):
     if expr == "annoyed":
         for x in (214, 346): eyes += f'<rect x="{x-34}" y="318" width="68" height="20" fill="{SK}"/><path d="M{x-31} 338H{x+31}" stroke="#341c28" stroke-width="11" stroke-linecap="round"/>'
     cy = 426
-    if mouth == 1: m = f'<ellipse cx="280" cy="{cy}" rx="12" ry="12" fill="{MCf}"/>'
+    if expr == "laugh":
+        dd = (24, 34, 46)[min(int(mouth), 2)]
+        m = (f'<path d="M254 {cy-12}Q280 {cy-12+2*dd} 306 {cy-12}Z" fill="{MCf}" stroke="{MCf}" stroke-width="4" stroke-linejoin="round"/>'
+             f'<path d="M259 {cy-9}H301" stroke="#fff" stroke-width="7" stroke-linecap="round"/><ellipse cx="280" cy="{cy-12+dd-9}" rx="14" ry="6" fill="#ee8090"/>')
+    elif mouth == 1: m = f'<ellipse cx="280" cy="{cy}" rx="12" ry="12" fill="{MCf}"/>'
     elif mouth >= 2: m = f'<ellipse cx="280" cy="{cy+2}" rx="21" ry="18" fill="{MCf}"/><ellipse cx="280" cy="{cy+10}" rx="13" ry="7" fill="#ee8090"/>'
     elif expr in ("happy", "joy", "excited"): m = f'<path d="M{258-(6 if expr != "happy" else 0)} {cy-12}Q280 {cy+(36 if expr != "happy" else 26)} {302+(6 if expr != "happy" else 0)} {cy-12}Z" fill="{MCf}" stroke="{MCf}" stroke-width="4" stroke-linejoin="round"/>'
     elif expr == "annoyed": m = f'<path d="M262 {cy}H298" stroke="{inkf}" stroke-width="6" stroke-linecap="round"/>'
@@ -216,12 +220,13 @@ def _face_fr(ch, expr, mouth, blink):
     br = lambda cx, cyy, r: (f'<g transform="translate(0 {dy}) rotate({r} {cx} {cyy})"><path d="M{cx-31} {cyy-4.8}A33 14 0 0 1 {cx+31} {cyy-4.8}" fill="none" stroke="{col}" stroke-width="5" stroke-linecap="round"/></g>')
     sweat = '<path d="M420 250q24 38 0 52q-24-14 0-52z" fill="#7fd0ff"/>' if expr in ("confused", "worried") else ''
     if expr == "angry": sweat += '<path d="M410 250L440 280M440 250L410 280" stroke="#e25555" stroke-width="9" stroke-linecap="round"/>'
+    if expr == "laugh": sweat += '<ellipse cx="170" cy="396" rx="8" ry="13" fill="#9fd8ff"/><ellipse cx="390" cy="396" rx="8" ry="13" fill="#9fd8ff"/>'
     return br(lx, ly, rot)+br(rx, ry, -rot)+eyes+m+sweat
 
 
 
 # ------------------------------------------------------------------ v3: extra expressions, poses (hand-target IK), props
-NEWX = ("worried", "annoyed", "angry", "smirk", "joy", "thinking", "excited", "determined")
+NEWX = ("worried", "annoyed", "angry", "smirk", "joy", "thinking", "excited", "determined", "laugh")
 L1, L2 = 95.0, 106.0       # upper arm / forearm length (see _arm)
 
 
@@ -229,8 +234,8 @@ def _face_jp_x(expr, mouth, blink):
     s, ink, brow, dark = "", INK, H((86, 56, 52)), H((55, 35, 42))
     sh = 10 if expr == "thinking" else 0
     for ex in (222, 338):
-        if blink or expr == "joy":
-            s += arc((ex-26, 332, ex+26, 376), 200, 340, ink, 6)
+        if blink or expr in ("joy", "laugh"):
+            s += arc((ex-26, 332, ex+26, 376), 200, 340, ink, 7 if expr == "laugh" else 6)
         elif expr == "annoyed":
             s += ell((ex-24, 340, ex+24, 384), dark)+ell((ex-12, 352, ex+4, 368), "#fff")+line([(ex-30, 338), (ex+30, 338)], ink, 9)
         elif expr == "excited":
@@ -243,14 +248,23 @@ def _face_jp_x(expr, mouth, blink):
          "angry": [((188, 286), (254, 316)), ((306, 316), (372, 286))],
          "smirk": [((192, 292), (252, 284)), ((308, 296), (368, 306))],
          "joy": [((190, 276), (252, 268)), ((308, 268), (370, 276))],
+         "laugh": [((190, 272), (252, 262)), ((308, 262), (370, 272))],
          "thinking": [((192, 296), (252, 296)), ((310, 268), (370, 280))],
          "excited": [((190, 266), (252, 258)), ((308, 258), (370, 266))],
          "determined": [((190, 290), (252, 304)), ((308, 304), (370, 290))]}[expr]
     for a, b in B:
         s += line([a, b], brow, 7)
-    chk = H((250, 172, 170)); k = 4 if expr in ("joy", "excited") else 0
+    chk = H((250, 172, 170)); k = 4 if expr in ("joy", "excited", "laugh") else 0
     s += ell((168-k, 388-k, 215+k, 412+k), chk)+ell((345-k, 388-k, 392+k, 412+k), chk)
-    if mouth == 1: s += ell((268, 408, 292, 430), MC)
+    if expr == "laugh":      # open "ha ha" mouth: a D shape that opens wider with the mouth value, teeth on top, tongue below, little tears
+        dd = (34, 48, 62)[min(int(mouth), 2)]
+        s += f'<path d="M242 396Q280 {396+2*dd} 318 396Z" fill="{MC}" stroke="{MC}" stroke-width="5" stroke-linejoin="round"/>'
+        s += f'<path d="M250 399H310" stroke="#fff" stroke-width="9" stroke-linecap="round"/>'
+        s += ell((264, 396+dd-22, 296, 396+dd-4), H((236, 120, 132)))
+        for ex in (222, 338):
+            tx = ex-40 if ex < 280 else ex+40
+            s += ell((tx-8, 382, tx+8, 408), H((176, 216, 240)))
+    elif mouth == 1: s += ell((268, 408, 292, 430), MC)
     elif mouth >= 2: s += ell((258, 405, 302, 442), MC)+ell((266, 424, 294, 440), H((236, 120, 132)))
     elif expr in ("joy", "excited"): s += f'<path d="M244 398Q280 458 316 398Z" fill="{MC}" stroke="{MC}" stroke-width="5" stroke-linejoin="round"/>'+ell((262, 424, 298, 440), H((236, 120, 132)))
     elif expr == "worried": s += line([(262, 428), (271, 420), (280, 428), (289, 420), (298, 428)], ink, 5)

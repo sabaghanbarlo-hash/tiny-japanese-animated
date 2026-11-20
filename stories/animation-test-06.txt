@@ -1,0 +1,16 @@
+title: Animation Test 6 - Laughing
+scene: apartment
+
+[story]
+@scene apartment
+> Mika enters left
+& Alex enters right
+> Alex looks excited
+Alex: ねえ、きいて！ | Hey, listen!
+> Alex laughs
+> Mika laughs
+Mika: あはは、おもしろい！ | Hahaha, that's funny!
+> Alex looks laughing
+Alex: あはは！ | Hahaha!
+> Mika looks happy
+Mika: ああ、おかしい。 | Ah, that was so funny.
