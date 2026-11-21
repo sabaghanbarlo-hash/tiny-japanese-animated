@@ -1,0 +1,117 @@
+title: Mika's Birthday
+scene: apartment
+
+[story]
+@scene apartment
+> Mika enters left
+& Alex enters right
+Alex: おはよう、ミカ。 | Good morning, Mika. | Ohayou, Mika.
+> Mika looks curious
+Mika: おはよう。 ねえ、きょうは なんの ひか しってる？ | Good morning. Hey, do you know what day it is today? | Ohayou. Nee, kyou wa nan no hi ka shitteru?
+> Alex thinks
+Alex: きょう？ かようびだよ。 | Today? It's Tuesday. | Kyou? Kayoubi da yo.
+> Mika looks sad
+Mika: ……そう。 かようびね。 | ...I see. Tuesday. | ...Sou. Kayoubi ne.
+> Alex looks worried
+Alex: ミカ、どうしたの？ | Mika, what's wrong? | Mika, dou shita no?
+> Mika faces away
+Mika: なんでもない。 しごとに いって きます。 | Nothing. I'm off to work. | Nandemo nai. Shigoto ni itte kimasu.
+> Mika exits left
+> Alex looks surprised
+Alex: ……あっ！ きょうは ミカの たんじょうびだ！ | ...Ah! Today is Mika's birthday! | ...A! Kyou wa Mika no tanjoubi da!
+> Alex covers his mouth
+> Alex looks worried
+Alex: どうしよう！ プレゼントが ない！ | What should I do?! I don't have a present! | Dou shiyou! Purezento ga nai!
+@scene town
+> Sakamoto enters left
+& Sakamoto holds a broom
+Alex: さかもとさん、おはようございます！ | Good morning, Mr. Sakamoto! | Sakamoto-san, ohayou gozaimasu!
+Sakamoto: おはよう。 そんなに いそいで、どうしたんだい？ | Good morning. Why are you in such a hurry? | Ohayou. Sonna ni isoide, dou shitan dai?
+> Alex looks worried
+Alex: きょうは ミカの たんじょうびなんです。 でも、プレゼントが ありません。 | Today is Mika's birthday. But I don't have a present. | Kyou wa Mika no tanjoubi nan desu. Demo, purezento ga arimasen.
+> Sakamoto thinks
+Sakamoto: ほう。 ミカさんは なにが すきかな？ | Hmm. What does Mika like? | Hou. Mika-san wa nani ga suki kana?
+> Alex looks excited
+Alex: たまごやきが だいすきです！ | She loves egg rolls! | Tamagoyaki ga daisuki desu!
+> Sakamoto points right
+Sakamoto: それなら、あそこの おのさんの みせが いいよ。 | In that case, Mr. Ono's shop over there is good. | Sore nara, asoko no Ono-san no mise ga ii yo.
+> Alex bows
+Alex: ありがとうございます！ いって きます！ | Thank you! I'll go right now! | Arigatou gozaimasu! Itte kimasu!
+> Sakamoto exits left
+@scene stall
+> Ono enters right
+Alex: すみません、たまごやきを みっつ ください。 | Excuse me, three egg rolls, please. | Sumimasen, tamagoyaki o mittsu kudasai.
+> Ono looks smirking
+Ono: はい、いらっしゃい！ きょうは なにか いい ことが あるのかい？ | Welcome! Is something good happening today? | Hai, irasshai! Kyou wa nanika ii koto ga aru no kai?
+Alex: ミカの たんじょうびなんです。 | It's Mika's birthday. | Mika no tanjoubi nan desu.
+> Ono cheers
+Ono: おお、おめでとう！ たまごやきは ひとつ おまけだ。 | Oh, congratulations! One egg roll is on the house. | Oo, omedetou! Tamagoyaki wa hitotsu omake da.
+> Alex holds the box
+> Alex looks happy
+Alex: ほんとうですか！ ありがとうございます！ | Really?! Thank you so much! | Hontou desu ka! Arigatou gozaimasu!
+> Ono points right
+Ono: それから、えきの ちかくの すしやも おいしいよ。 | Also, the sushi place near the station is delicious. | Sorekara, eki no chikaku no sushiya mo oishii yo.
+Alex: いい ですね！ よやくを して みます。 | Good idea! I'll try to make a reservation. | Ii desu ne! Yoyaku o shite mimasu.
+> Ono exits right
+@scene sushi
+> Hana enters right
+Alex: すみません、きょうの ろくじに ふたり、よやくを おねがいします。 | Excuse me, a reservation for two at six o'clock today, please. | Sumimasen, kyou no rokuji ni futari, yoyaku o onegaishimasu.
+> Hana bows
+Hana: はい、だいじょうぶです。 おなまえを おねがいします。 | Yes, that's fine. Your name, please. | Hai, daijoubu desu. Onamae o onegaishimasu.
+Alex: アレックスです。 きょうは ミカの たんじょうびです。 | It's Alex. Today is Mika's birthday. | Arekkusu desu. Kyou wa Mika no tanjoubi desu.
+> Hana clasps hands
+> Hana looks excited
+Hana: まあ、すてき！ とくべつな おさらを よういしますね。 | Oh, how lovely! I'll prepare a special plate. | Maa, suteki! Tokubetsu na osara o youi shimasu ne.
+> Alex bows
+Alex: よろしく おねがいします！ | Thank you very much! | Yoroshiku onegaishimasu!
+Hana: ろくじに なりました。 おきゃくさまが きましたよ。 | It's six o'clock now. Your guest has arrived. | Rokuji ni narimashita. Okyakusama ga kimashita yo.
+> Mika enters left
+> Mika looks sad
+Mika: こんばんは。 ここで しょくじを するの？ | Good evening. We're eating here? | Konbanwa. Koko de shokuji o suru no?
+> Alex looks excited
+Alex: たんじょうび、おめでとう、ミカ！ | Happy birthday, Mika! | Tanjoubi, omedetou, Mika!
+> Mika looks surprised
+Mika: え？ おぼえて いたの？ | Huh? You remembered? | E? Oboete ita no?
+> Alex looks worried
+> Alex shrugs
+Alex: ……ごめん。 あさは わすれて いたんだ。 でも、いっしょうけんめい かんがえたよ。 | ...Sorry. I forgot this morning. But I thought really hard. | ...Gomen. Asa wa wasurete ita n da. Demo, isshoukenmei kangaeta yo.
+> Mika looks happy
+Mika: ふふ。 ありがとう。 すごく うれしい！ | Hehe. Thank you. I'm so happy! | Fufu. Arigatou. Sugoku ureshii!
+> Hana shows
+Hana: おたんじょうび おめでとうございます！ どうぞ。 | Happy birthday! Here you are. | Otanjoubi omedetou gozaimasu! Douzo.
+> Mika cheers
+Mika: わあ、たまごやきの おすしだ！ | Wow, egg sushi! | Waa, tamagoyaki no osushi da!
+> Alex shows
+Alex: ミカ、これ プレゼントだよ。 たまごやきの はこ。 | Mika, this is your present. A box of egg rolls. | Mika, kore purezento da yo. Tamagoyaki no hako.
+> Mika laughs
+Mika: ははは。 ありがとう。 らいねんも わすれないでね。 | Haha. Thank you. Don't forget next year, okay? | Hahaha. Arigatou. Rainen mo wasurenai de ne.
+> Alex nods
+Alex: ぜったい わすれないよ！ | I'll never forget! | Zettai wasurenai yo!
+
+[vocab]
+vocab: たんじょうび | birthday | tanjoubi
+example: ミカの たんじょうびは きょうです。 | Mika's birthday is today. | Mika no tanjoubi wa kyou desu.
+vocab: プレゼント | present | purezento
+example: ともだちに プレゼントを あげます。 | I give a present to my friend. | Tomodachi ni purezento o agemasu.
+vocab: よやく | reservation | yoyaku
+example: ろくじに よやくを しました。 | I made a reservation for six o'clock. | Rokuji ni yoyaku o shimashita.
+vocab: わすれる | to forget | wasureru
+example: たんじょうびを わすれないで ください。 | Please don't forget the birthday. | Tanjoubi o wasurenaide kudasai.
+vocab: おぼえる | to remember | oboeru
+example: ともだちの なまえを おぼえて います。 | I remember my friend's name. | Tomodachi no namae o oboete imasu.
+vocab: うれしい | happy / glad | ureshii
+example: プレゼントが うれしいです。 | I'm happy about the present. | Purezento ga ureshii desu.
+
+[grammar]
+grammar: Noun + が ない | Use this to say you don't have something (casual)
+example: プレゼントが ない。 | I don't have a present. | Purezento ga nai.
+example: じかんが ない。 | I have no time. | Jikan ga nai.
+grammar: Noun + を おねがいします | Use this to politely ask for something
+example: よやくを おねがいします。 | A reservation, please. | Yoyaku o onegaishimasu.
+example: おみずを おねがいします。 | Water, please. | Omizu o onegaishimasu.
+
+[quiz]
+quiz: What does たんじょうび mean? | birthday | present | reservation | A | たんじょうび means birthday.
+quiz: How do you say "I don't have a present"? | プレゼントが ない | プレゼントを ない | プレゼントに ない | A | が ない is used for something you don't have.
+quiz: Which one is a polite request? | よやくを おねがいします | よやくが ない | よやくを わすれた | A | おねがいします makes a polite request.
+quiz: What does わすれる mean? | to forget | to remember | to eat | A | わすれる means to forget.
