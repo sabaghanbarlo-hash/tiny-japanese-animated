@@ -492,6 +492,7 @@ class Stage:
                 if (not self.vis_at(nm, t)) or x_now < -L.SPRITE_W * 0.5 or x_now > self.W + L.SPRITE_W * 0.5:
                     self.moves[nm].append((t, t, x_now, self._off(nm, side)))   # start from off-screen
                     self.vis[nm].append((t, True))
+                    self.back[nm].append((t, False))      # a character walking in faces the viewer again
                 d = self._move(nm, t, dest)
                 end = t + d
                 dur = max(dur, d)
